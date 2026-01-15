@@ -42,4 +42,5 @@ This project utilizes a **Layered Architecture** to ensure maintainability and s
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/YOUR_USERNAME/algobotix-inventory-manager.git](https://github.com/YOUR_USERNAME/algobotix-inventory-manager.git)
+
+   git clone [https://github.com/faiquefaizal/algobotix-inventory.git](https://github.com/faiquefaizal/algobotix-inventory.git)
