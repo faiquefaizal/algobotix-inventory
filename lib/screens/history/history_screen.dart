@@ -1,6 +1,10 @@
+import 'package:algo_botix_assignment/screens/history/widgets/history_tile.dart';
 import 'package:flutter/material.dart';
-import '../db/database_helper.dart';
-import '../models/stock_history.dart';
+import 'package:algo_botix_assignment/db/database_helper.dart';
+import 'package:algo_botix_assignment/models/stock_history_model.dart';
+import 'package:algo_botix_assignment/core/widgets/custom_app_bar.dart';
+import 'package:algo_botix_assignment/core/theme/app_colors.dart';
+import 'package:algo_botix_assignment/core/theme/app_typography.dart';
 
 class HistoryScreen extends StatelessWidget {
   final String productId;
@@ -15,16 +19,23 @@ class HistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Stock History: $productName")),
+      appBar: CustomAppBar(title: 'History: $productName'),
       body: FutureBuilder<List<StockHistory>>(
         future: DatabaseHelper.instance.getHistoryForProduct(productId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text("Error: ${snapshot.error}"));
+            return Center(
+              child: Text(
+                "Error: ${snapshot.error}",
+                style: AppTypography.body,
+              ),
+            );
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("No history available."));
+            return const Center(
+              child: Text("No history available.", style: AppTypography.body),
+            );
           }
 
           final history = snapshot.data!;
@@ -34,18 +45,7 @@ class HistoryScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final item = history[index];
               final isPositive = item.changeAmount > 0;
-              return ListTile(
-                leading: Icon(
-                  isPositive ? Icons.arrow_upward : Icons.arrow_downward,
-                  color: isPositive ? Colors.green : Colors.red,
-                ),
-                title: Text(
-                  "${isPositive ? '+' : ''}${item.changeAmount} Stock",
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: Text(item.timestamp),
-                trailing: Text("New Stock: ${item.newStock}"),
-              );
+              return HistoryTile(isPositive: isPositive, item: item);
             },
           );
         },

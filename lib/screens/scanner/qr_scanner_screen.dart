@@ -1,6 +1,6 @@
+import 'package:algo_botix_assignment/core/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class QRScannerScreen extends StatefulWidget {
   const QRScannerScreen({super.key});
@@ -15,20 +15,12 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   @override
   void initState() {
     super.initState();
-    _checkPermission();
-  }
-
-  Future<void> _checkPermission() async {
-    final status = await Permission.camera.request();
-    if (status != PermissionStatus.granted) {
-      if (mounted) Navigator.pop(context); // Close if no permission
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Scan Product QR')),
+      appBar: const CustomAppBar(title: 'Scan Product QR'),
       body: MobileScanner(
         controller: controller,
         onDetect: (capture) {
@@ -43,5 +35,11 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         },
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
   }
 }

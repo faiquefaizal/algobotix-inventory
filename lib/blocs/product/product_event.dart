@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import '../../models/product.dart';
+import 'package:algo_botix_assignment/models/product_model.dart';
 
 abstract class ProductEvent extends Equatable {
   const ProductEvent();
@@ -39,8 +39,9 @@ class DeleteProduct extends ProductEvent {
 
 class SearchProducts extends ProductEvent {
   final String query;
+  final bool isFromQrScan;
 
-  const SearchProducts(this.query);
+  const SearchProducts({required this.query, this.isFromQrScan = false});
 
   @override
   List<Object> get props => [query];

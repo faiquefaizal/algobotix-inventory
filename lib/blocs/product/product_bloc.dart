@@ -1,11 +1,14 @@
+import 'package:algo_botix_assignment/core/utils/helper_funtions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
-import '../../db/database_helper.dart';
-import '../../models/product.dart';
-import '../../models/stock_history.dart';
+
+import 'package:algo_botix_assignment/db/database_helper.dart';
+import 'package:algo_botix_assignment/models/stock_history_model.dart';
 import 'product_event.dart';
 import 'product_state.dart';
 
+/// Manages the state of the product inventory.
+///
+/// Handles CRUD operations, searching, and stock adjustments.
 class ProductBloc extends Bloc<ProductEvent, ProductState> {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
@@ -19,6 +22,9 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<DecrementStock>(_onDecrementStock);
   }
 
+  /// Loads all products from the database.
+  ///
+  /// Emits [ProductLoading] initially, then [ProductLoaded] with the data.
   Future<void> _onLoadProducts(
     LoadProducts event,
     Emitter<ProductState> emit,
@@ -32,14 +38,12 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     }
   }
 
+  /// Adds a new product to the database and reloads the list.
   Future<void> _onAddProduct(
     AddProduct event,
     Emitter<ProductState> emit,
   ) async {
     try {
-      // Note: Duplication check on ID is now handled/implied by DatabaseHelper generation if ID is null.
-      // If we provided an explicit ID, we might check it.
-      // Current flow sends Product with null ID for new items.
       await _dbHelper.insertProduct(event.product);
       add(LoadProducts());
     } catch (e) {
@@ -47,6 +51,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     }
   }
 
+  /// Updates an existing product and reloads the list.
   Future<void> _onUpdateProduct(
     UpdateProduct event,
     Emitter<ProductState> emit,
@@ -59,6 +64,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     }
   }
 
+  /// Deletes a product by ID and reloads the list.
   Future<void> _onDeleteProduct(
     DeleteProduct event,
     Emitter<ProductState> emit,
@@ -71,6 +77,9 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     }
   }
 
+  /// Filters the loaded product list based on a search query.
+  ///
+  /// Supports searching by Product Name or ID.
   Future<void> _onSearchProducts(
     SearchProducts event,
     Emitter<ProductState> emit,
@@ -79,15 +88,19 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       final loadedState = state as ProductLoaded;
       final query = event.query.toLowerCase();
 
-      final filtered = loadedState.products.where((product) {
-        return (product.id?.toLowerCase().contains(query) ?? false) ||
-            product.name.toLowerCase().contains(query);
-      }).toList();
+      final filtered = loadedState.products
+          .where(
+            (product) =>
+                (product.id?.toLowerCase().contains(query) ?? false) ||
+                product.name.toLowerCase().contains(query),
+          )
+          .toList();
 
       emit(
         ProductLoaded(
           products: loadedState.products,
           filteredProducts: filtered,
+          isFromQrScan: event.isFromQrScan,
         ),
       );
     }
@@ -107,46 +120,62 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     await _updateStock(event.productId, -1, emit);
   }
 
+  /// internal helper to update stock (Optimistic UI Update).
+  ///
+  /// 1. Updates local state immediately for responsiveness.
+  /// 2. Syncs change to database in background.
+  /// 3. Rolls back changes if DB sync fails.
   Future<void> _updateStock(
     String productId,
     int change,
     Emitter<ProductState> emit,
   ) async {
-    try {
-      final product = await _dbHelper.getProduct(productId);
-      if (product != null) {
-        final newStock = product.stock + change;
-        if (newStock < 0) return; // Prevent negative stock
+    // Only proceed if products are already loaded
+    if (state is ProductLoaded) {
+      final currentState = state as ProductLoaded;
 
-        final updatedProduct = product.copyWith(stock: newStock);
+      // 1. FIND AND UPDATE LOCALLY (Optimistic Update)
+      final updatedProducts = getUpdatedList(
+        currentState.products,
+        productId,
+        change,
+      );
+
+      // Check if any change actually happened (e.g., prevented negative stock)
+      final updatedProduct = updatedProducts.firstWhere(
+        (p) => p.id == productId,
+      );
+      final originalProduct = currentState.products.firstWhere(
+        (p) => p.id == productId,
+      );
+
+      if (updatedProduct.stock == originalProduct.stock) return;
+
+      // 2. EMIT IMMEDIATELY (UI changes instantly)
+      emit(
+        ProductLoaded(
+          products: updatedProducts,
+          filteredProducts: updatedProducts,
+        ),
+      );
+
+      try {
+        // 3. BACKGROUND DATABASE SYNC
+        // We already calculated values, just push to DB
         await _dbHelper.updateProduct(updatedProduct);
 
-        // Log History
         final history = StockHistory(
           productId: productId,
-          timestamp: DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now()),
           changeAmount: change,
-          newStock: newStock,
+          newStock: updatedProduct.stock,
         );
         await _dbHelper.logStockChange(history);
-
-        // Ideally, we just update the list locally to avoid full reload flicker,
-        // but for reliability with Search, reloading is safe.
-        // Or better: Update list in place.
-        if (state is ProductLoaded) {
-          final currentState = state as ProductLoaded;
-          final updatedList = currentState.products
-              .map((p) => p.id == productId ? updatedProduct : p)
-              .toList();
-
-          // Re-apply filter if needed, or just LoadProducts(). LoadProducts is safer for consistency.
-          add(LoadProducts());
-        } else {
-          add(LoadProducts());
-        }
+      } catch (e) {
+        // 4. ROLLBACK ON ERROR
+        // If DB fails, reload everything to ensure UI matches DB reality
+        add(LoadProducts());
+        emit(ProductError("Sync failed: $e"));
       }
-    } catch (e) {
-      emit(ProductError("Failed to update stock: $e"));
     }
   }
 }

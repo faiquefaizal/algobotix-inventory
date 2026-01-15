@@ -1,10 +1,15 @@
 import 'dart:io';
+import 'package:algo_botix_assignment/screens/home/widgets/product_image.dart';
+import 'package:algo_botix_assignment/screens/home/widgets/stock_button.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../blocs/product/product_bloc.dart';
-import '../blocs/product/product_event.dart';
-import '../models/product.dart';
-import '../screens/product_details_screen.dart';
+import 'package:algo_botix_assignment/blocs/product/product_bloc.dart';
+import 'package:algo_botix_assignment/blocs/product/product_event.dart';
+import 'package:algo_botix_assignment/models/product_model.dart';
+import 'package:algo_botix_assignment/screens/product_detail/product_details_screen.dart';
+import 'package:algo_botix_assignment/core/theme/app_colors.dart';
+import 'package:algo_botix_assignment/core/theme/app_typography.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -33,23 +38,7 @@ class ProductCard extends StatelessWidget {
               // Image
               Hero(
                 tag: 'product_${product.id}',
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    color: Colors.grey.shade200,
-                    image: product.imagePath.isNotEmpty
-                        ? DecorationImage(
-                            image: FileImage(File(product.imagePath)),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
-                  ),
-                  child: product.imagePath.isEmpty
-                      ? const Icon(Icons.inventory, color: Colors.grey)
-                      : null,
-                ),
+                child: ProductImage(imagePath: product.imagePath),
               ),
               const SizedBox(width: 16),
               // Content
@@ -59,37 +48,30 @@ class ProductCard extends StatelessWidget {
                   children: [
                     Text(
                       product.name,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: AppTypography.subtitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Text(
                       product.description,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: Colors.grey[700]),
+                      style: AppTypography.label,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        Text(
-                          'Stock: ',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        // Increment/Decrement
+                        Text('Stock: ', style: AppTypography.body),
+
                         Container(
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade300),
+                            border: Border.all(color: AppColors.borderGrey),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Row(
                             children: [
-                              _StockButton(
+                              StockButton(
                                 icon: Icons.remove,
                                 onTap: () {
                                   if (product.id != null) {
@@ -104,13 +86,15 @@ class ProductCard extends StatelessWidget {
                                   horizontal: 8,
                                 ),
                                 child: Text(
-                                  '${product.stock}',
-                                  style: const TextStyle(
+                                  NumberFormat.decimalPattern().format(
+                                    product.stock,
+                                  ),
+                                  style: AppTypography.body.copyWith(
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
-                              _StockButton(
+                              StockButton(
                                 icon: Icons.add,
                                 onTap: () {
                                   if (product.id != null) {
@@ -131,25 +115,6 @@ class ProductCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _StockButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _StockButton({required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.all(4),
-        child: Icon(icon, size: 18, color: Theme.of(context).primaryColor),
       ),
     );
   }

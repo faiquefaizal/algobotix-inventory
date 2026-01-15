@@ -1,0 +1,10 @@
+Analyzing algo_botix_assignment...                              
+
+warning - Unused import: 'dart:io' - lib\core\widgets\custom_image_picker_button.dart:1:8 - unused_import
+warning - Unused import: 'package:algo_botix_assignment/core/theme/app_colors.dart' - lib\features\history\presentation\screens\history_screen.dart:6:8 - unused_import
+  error - Target of URI doesn't exist: 'custom_fab.dart' - lib\features\home\presentation\widgets\home_fabs.dart:12:8 - uri_does_not_exist
+  error - The method 'CustomFloatingActionButton' isn't defined for the type 'HomeFloatingActionButtons' - lib\features\home\presentation\widgets\home_fabs.dart:22:9 - undefined_method
+  error - The method 'CustomFloatingActionButton' isn't defined for the type 'HomeFloatingActionButtons' - lib\features\home\presentation\widgets\home_fabs.dart:45:9 - undefined_method
+warning - Unused import: 'dart:io' - lib\features\product\presentation\widgets\product_card.dart:1:8 - unused_import
+   info - Constructors for public widgets should have a named 'key' parameter - lib\features\product\presentation\widgets\stock_button.dart:8:9 - use_key_in_widget_constructors
+
