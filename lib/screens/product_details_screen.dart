@@ -5,6 +5,7 @@ import '../blocs/product/product_bloc.dart';
 import '../blocs/product/product_event.dart';
 import '../models/product.dart';
 import 'add_edit_product_screen.dart';
+import 'history_screen.dart';
 
 class ProductDetailsScreen extends StatelessWidget {
   final Product product;
@@ -136,6 +137,22 @@ class ProductDetailsScreen extends StatelessWidget {
                   Text(
                     "Date: ${product.dateAdded}",
                     style: const TextStyle(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => HistoryScreen(
+                            productId: product.id,
+                            productName: product.name,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.history),
+                    label: const Text("View Stock History"),
                   ),
                   const SizedBox(height: 16),
                   const Text(

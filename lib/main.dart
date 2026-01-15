@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'blocs/product/product_bloc.dart';
 import 'blocs/product/product_event.dart';
+import 'core/theme/app_theme.dart';
 import 'screens/home_screen.dart';
 
 void main() {
@@ -20,17 +21,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'AlgoBotix Inventory',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-          useMaterial3: true,
-          appBarTheme: const AppBarTheme(centerTitle: true, elevation: 2),
-          cardTheme: CardTheme(
-            elevation: 3,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        ),
+        theme: AppTheme.lightTheme,
         home: const HomeScreen(),
       ),
     );
