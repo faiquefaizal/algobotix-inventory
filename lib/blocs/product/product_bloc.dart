@@ -37,15 +37,9 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     Emitter<ProductState> emit,
   ) async {
     try {
-      if (await _dbHelper.getProduct(event.product.id) != null) {
-        emit(
-          const ProductError("Product ID already exists. Please try again."),
-        );
-        // Reload to restore state ? Or just emit error then reload?
-        // Better to keep previous state if possible, but simplicity:
-        add(LoadProducts());
-        return;
-      }
+      // Note: Duplication check on ID is now handled/implied by DatabaseHelper generation if ID is null.
+      // If we provided an explicit ID, we might check it.
+      // Current flow sends Product with null ID for new items.
       await _dbHelper.insertProduct(event.product);
       add(LoadProducts());
     } catch (e) {
@@ -86,7 +80,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       final query = event.query.toLowerCase();
 
       final filtered = loadedState.products.where((product) {
-        return product.id.toLowerCase().contains(query) ||
+        return (product.id?.toLowerCase().contains(query) ?? false) ||
             product.name.toLowerCase().contains(query);
       }).toList();
 

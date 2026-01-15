@@ -1,21 +1,21 @@
 class Product {
-  final String id;
+  final String? id;
   final String name;
   final String description;
   final int stock;
   final String imagePath;
-  final String dateAdded;
+  final DateTime dateAdded;
   final String addedBy;
 
   Product({
-    required this.id,
+    this.id,
     required this.name,
     required this.description,
     required this.stock,
     required this.imagePath,
-    required this.dateAdded,
-    required this.addedBy,
-  });
+    DateTime? dateAdded,
+    this.addedBy = 'User1',
+  }) : dateAdded = dateAdded ?? DateTime.now();
 
   Map<String, dynamic> toMap() {
     return {
@@ -24,7 +24,7 @@ class Product {
       'description': description,
       'stock': stock,
       'image_path': imagePath,
-      'date_added': dateAdded,
+      'date_added': dateAdded.toIso8601String(),
       'added_by': addedBy,
     };
   }
@@ -36,7 +36,7 @@ class Product {
       description: map['description'],
       stock: map['stock'],
       imagePath: map['image_path'] ?? '',
-      dateAdded: map['date_added'],
+      dateAdded: DateTime.parse(map['date_added']),
       addedBy: map['added_by'],
     );
   }
@@ -47,7 +47,7 @@ class Product {
     String? description,
     int? stock,
     String? imagePath,
-    String? dateAdded,
+    DateTime? dateAdded,
     String? addedBy,
   }) {
     return Product(

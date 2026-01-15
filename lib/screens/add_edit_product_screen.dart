@@ -3,12 +3,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import '../blocs/product/product_bloc.dart';
 import '../blocs/product/product_event.dart';
 import '../blocs/product/product_state.dart';
 import '../models/product.dart';
-import '../db/database_helper.dart';
 
 class AddEditProductScreen extends StatefulWidget {
   final Product? product;
@@ -25,8 +23,6 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
   late TextEditingController _descController;
   late TextEditingController _stockController;
   String? _imagePath;
-  String? _generatedId;
-  bool _isGeneratingId = false;
 
   @override
   void initState() {
@@ -39,26 +35,6 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
       text: widget.product?.stock.toString() ?? '0',
     );
     _imagePath = widget.product?.imagePath;
-
-    if (widget.product != null) {
-      _generatedId = widget.product!.id;
-    } else {
-      _generateUniqueId();
-    }
-  }
-
-  Future<void> _generateUniqueId() async {
-    setState(() => _isGeneratingId = true);
-    try {
-      final id = await DatabaseHelper.instance.generateUniqueId();
-      setState(() {
-        _generatedId = id;
-        _isGeneratingId = false;
-      });
-    } catch (e) {
-      setState(() => _isGeneratingId = false);
-      // Handle error if needed
-    }
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -73,28 +49,18 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
 
   void _saveProduct() {
     if (_formKey.currentState!.validate()) {
-      if (widget.product == null && _isGeneratingId) return; // Wait for ID
-
       final name = _nameController.text;
       final description = _descController.text;
       final stock = int.tryParse(_stockController.text) ?? 0;
       final imagePath = _imagePath ?? '';
 
-      final timestamp = DateFormat(
-        'yyyy-MM-dd HH:mm:ss',
-      ).format(DateTime.now());
-      const addedBy = "User1"; // Hardcoded as per requirement
-
       if (widget.product == null) {
-        // Add
+        // Add - ID and Date handled by Model/DB
         final newProduct = Product(
-          id: _generatedId!,
           name: name,
           description: description,
           stock: stock,
           imagePath: imagePath,
-          dateAdded: timestamp,
-          addedBy: addedBy,
         );
         context.read<ProductBloc>().add(AddProduct(newProduct));
       } else {
@@ -124,33 +90,18 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (widget.product == null)
+              if (widget.product != null)
                 Card(
                   color: Colors.teal.shade50,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        const Text(
-                          "ID: ",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        if (_isGeneratingId)
-                          const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        else
-                          Text(
-                            _generatedId ?? "Error",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Colors.teal,
-                            ),
-                          ),
-                      ],
+                    child: Text(
+                      "ID: ${widget.product!.id ?? 'Pending'}",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: Colors.teal,
+                      ),
                     ),
                   ),
                 ),

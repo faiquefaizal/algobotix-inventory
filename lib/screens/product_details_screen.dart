@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import '../blocs/product/product_bloc.dart';
 import '../blocs/product/product_event.dart';
 import '../models/product.dart';
@@ -56,9 +57,11 @@ class ProductDetailsScreen extends StatelessWidget {
                         style: TextStyle(color: Colors.red),
                       ),
                       onPressed: () {
-                        context.read<ProductBloc>().add(
-                          DeleteProduct(product.id),
-                        );
+                        if (product.id != null) {
+                          context.read<ProductBloc>().add(
+                            DeleteProduct(product.id!),
+                          );
+                        }
                         Navigator.pop(ctx); // Dialog
                         Navigator.pop(context); // Screen
                       },
@@ -107,7 +110,7 @@ class ProductDetailsScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "ID: ${product.id}",
+                        "ID: ${product.id ?? 'N/A'}",
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -135,7 +138,7 @@ class ProductDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    "Date: ${product.dateAdded}",
+                    "Date: ${DateFormat('yyyy-MM-dd HH:mm').format(product.dateAdded)}",
                     style: const TextStyle(color: Colors.grey),
                   ),
                   const SizedBox(height: 16),
@@ -145,7 +148,8 @@ class ProductDetailsScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => HistoryScreen(
-                            productId: product.id,
+                            productId: product
+                                .id!, // Safe if we are viewing details, ID must exist
                             productName: product.name,
                           ),
                         ),

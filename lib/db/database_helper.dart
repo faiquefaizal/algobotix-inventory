@@ -57,27 +57,24 @@ class DatabaseHelper {
 
   Future<void> insertProduct(Product product) async {
     final db = await instance.database;
+    String id = await generateUniqueId();
+    final productToSave = product.copyWith(id: id);
+
     await db.insert(
       'products',
-      product.toMap(),
+      productToSave.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
   Future<Product?> getProduct(String id) async {
     final db = await instance.database;
-    final maps = await db.query(
-      'products',
-      columns: null,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    final maps = await db.query('products', where: 'id = ?', whereArgs: [id]);
 
     if (maps.isNotEmpty) {
       return Product.fromMap(maps.first);
-    } else {
-      return null;
     }
+    return null;
   }
 
   Future<List<Product>> getAllProducts() async {

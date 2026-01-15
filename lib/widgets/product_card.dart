@@ -92,9 +92,11 @@ class ProductCard extends StatelessWidget {
                               _StockButton(
                                 icon: Icons.remove,
                                 onTap: () {
-                                  context.read<ProductBloc>().add(
-                                    DecrementStock(product.id),
-                                  );
+                                  if (product.id != null) {
+                                    context.read<ProductBloc>().add(
+                                      DecrementStock(product.id!),
+                                    );
+                                  }
                                 },
                               ),
                               Padding(
@@ -111,9 +113,11 @@ class ProductCard extends StatelessWidget {
                               _StockButton(
                                 icon: Icons.add,
                                 onTap: () {
-                                  context.read<ProductBloc>().add(
-                                    IncrementStock(product.id),
-                                  );
+                                  if (product.id != null) {
+                                    context.read<ProductBloc>().add(
+                                      IncrementStock(product.id!),
+                                    );
+                                  }
                                 },
                               ),
                             ],
