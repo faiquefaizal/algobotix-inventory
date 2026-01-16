@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:algo_botix_assignment/db/database_helper.dart';
 import 'package:algo_botix_assignment/models/stock_history_model.dart';
 import 'package:algo_botix_assignment/core/widgets/custom_app_bar.dart';
-import 'package:algo_botix_assignment/core/theme/app_colors.dart';
+
 import 'package:algo_botix_assignment/core/theme/app_typography.dart';
 
 class HistoryScreen extends StatelessWidget {
